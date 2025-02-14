@@ -31,5 +31,9 @@ flutter:
     - assets/images/jsk.png
     - assets/images/usb.png
     - assets/images/background.png
+    - assets/images/stadium.jpg
+    - assets/images/stadium2.jpg
+    - assets/images/usma_kit.png
+    - assets/images/user.png
 
 
