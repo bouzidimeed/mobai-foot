@@ -35,5 +35,7 @@ flutter:
     - assets/images/stadium2.jpg
     - assets/images/usma_kit.png
     - assets/images/user.png
+    - assets/images/goal.png
+    - assets/images/yellow.png
 
 
