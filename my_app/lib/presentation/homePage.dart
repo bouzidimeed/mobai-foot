@@ -1,5 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:my_app/database/db_helper.dart';
+import 'package:my_app/presentation/roundFinalScore.dart';
+import '../models/match.dart';
+import '../services/match_generator.dart';
 
 class LiveScoreScreen extends StatefulWidget {
   @override
@@ -7,35 +14,48 @@ class LiveScoreScreen extends StatefulWidget {
 }
 
 class _LiveScoreScreenState extends State<LiveScoreScreen> {
+// List of stadiums in Algeria
+
   final PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentPage = 0;
   Timer? _timer;
 
-  final List<Map<String, dynamic>> matches = [
-    {"club1": "MCA", "logo1": "assets/images/mca.png", "score": "2 - 2", "club2": "USMA", "logo2": "assets/images/mca.png"},
-    {"club1": "CRB", "logo1": "assets/images/crb.png", "score": "1 - 0", "club2": "JSS", "logo2": "assets/images/mca.png"},
-    {"club1": "ESS", "logo1": "assets/images/ess.png", "score": "3 - 1", "club2": "CSC", "logo2": "assets/images/mca.png"},
-    {"club1": "JSK", "logo1": "assets/images/jsk.png", "score": "0 - 0", "club2": "NAHD", "logo2": "assets/images/mca.png"},
-    {"club1": "USB", "logo1": "assets/images/usb.png", "score": "1 - 3", "club2": "RCA", "logo2": "assets/images/mca.png"},
-  ];
-
-  final List<Map<String, dynamic>> nextRoundMatches = [
-    {"club1": "Kabyle", "logo1": "assets/images/jsk.png", "date": "27 Aug 2022", "time": "01:40", "club2": "USMA", "logo2": "assets/images/usma.png"},
-    {"club1": "Molodya", "logo1": "assets/images/mca.png", "date": "27 Aug 2022", "time": "00:10", "club2": "Essetif", "logo2": "assets/images/ess.png"},
-    {"club1": "Belouzed", "logo1": "assets/images/crb.png", "date": "27 Aug 2022", "time": "00:10", "club2": "Rahim", "logo2": "assets/images/asb.png"},
-  ];
+  List<Match> currentRoundMatches = [];
+  List<Match> nextRoundMatches = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadMatches();
     _startAutoScroll();
+  }
+
+  Future<void> _loadMatches() async {
+    try {
+      final String jsonString = await DefaultAssetBundle.of(context)
+          .loadString('assets/jsons/Algerian_fantasy_data.json');
+      final data = json.decode(jsonString);
+      final clubs = List<Map<String, dynamic>>.from(data['clubs']);
+
+      setState(() {
+        currentRoundMatches = MatchGenerator.generateCurrentRoundMatches(clubs);
+        nextRoundMatches = MatchGenerator.generateNextRoundMatches(clubs);
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading matches: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _startAutoScroll() {
     _timer = Timer.periodic(Duration(seconds: 3), (timer) {
       if (!mounted) return;
       setState(() {
-        _currentPage = (_currentPage + 1) % matches.length;
+        _currentPage = (_currentPage + 1) % currentRoundMatches.length;
       });
       _pageController.animateToPage(
         _currentPage,
@@ -43,6 +63,34 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
         curve: Curves.easeInOut,
       );
     });
+  }
+
+  List<Map<String, dynamic>> _convertMatchesToMap(List<Match> matches) {
+    return matches.map((match) {
+      return {
+        "team1_logo": match.logo1,
+        "team1_name": match.club1,
+        "team2_logo": match.logo2,
+        "team2_name": match.club2,
+      };
+    }).toList();
+  }
+
+  void _navigateToPlayRound() async {
+    final dbHelper = DatabaseHelper();
+    final lineup = await dbHelper.getUserLineup();
+
+    // Convert List<Match> to List<Map<String, dynamic>>
+    final List<Map<String, dynamic>> matchesAsMap =
+        _convertMatchesToMap(currentRoundMatches);
+
+    // Pass the converted list and lineup to MatchScreen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            MatchScreen(matches: matchesAsMap, userLineup: lineup),
+      ),
+    );
   }
 
   @override
@@ -54,6 +102,17 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: Color(0xFF181928),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Color(0xFF181928),
       appBar: AppBar(
@@ -70,11 +129,47 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
               height: 160,
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: matches.length,
+                itemCount: currentRoundMatches.length,
                 itemBuilder: (context, index) {
-                  return _buildMatchCard(matches[index]);
+                  return _buildMatchCard(currentRoundMatches[index]);
                 },
               ),
+            ),
+            SizedBox(height: 10),
+            Center(
+              child: Container(
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(8),
+    gradient: LinearGradient(
+       colors: [
+        Color(0xFF4568DC), // Blue
+        Color(0xFFB06AB3), // Purple
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  ),
+  child: ElevatedButton(
+    onPressed: _navigateToPlayRound,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.transparent, // Remove default color
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 0, // Remove shadow to keep gradient effect clean
+    ),
+    child: Text(
+      'Play Round',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.white, // Ensure text contrast
+      ),
+    ),
+  ),
+),
+
             ),
             SizedBox(height: 20),
             Padding(
@@ -84,7 +179,11 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
                 children: [
                   Text(
                     'Next Round',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'See All',
@@ -101,41 +200,39 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
     );
   }
 
- Widget _buildMatchCard(Map<String, dynamic> match) {
-  return Container(
-    margin: EdgeInsets.symmetric(horizontal: 8),
-    decoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage("assets/images/background.png"),
-        alignment: Alignment.bottomRight, // Moves the image to the left
-         // Update with your actual image path
-        fit: BoxFit.contain, // Ensures the image covers the entire container
-      ),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    padding: EdgeInsets.all(16),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildClubInfo(match["club1"], match["logo1"], [
-          {"player": "Benzema", "minute": 10},
-          {"player": "Modric", "minute": 20},
-        ]),
-        Text(
-          match["score"],
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+  Widget _buildMatchCard(Match match) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/background.png"),
+          alignment: Alignment.bottomRight,
+          fit: BoxFit.contain,
         ),
-        _buildClubInfo(match["club2"], match["logo2"], [
-          {"player": "Messi", "minute": 30},
-          {"player": "Ronaldo", "minute": 45},
-        ]),
-      ],
-    ),
-  );
-}
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildClubInfo(match.club1, match.logo1),
+          Text(
+            'VS',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          _buildClubInfo(match.club2, match.logo2),
+        ],
+      ),
+    );
+  }
 
-
-  Widget _buildClubInfo(String clubName, String logoPath, List<Map<String, dynamic>> scorers) {
+  Widget _buildClubInfo(String clubName, String logoPath) {
+    // Club Name is of the form "full name - short name", keep only the short name
+    clubName = clubName.split(' - ')[1];
     return Column(
       children: [
         Image.asset(
@@ -151,18 +248,11 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
           clubName,
           style: TextStyle(color: Colors.white, fontSize: 16),
         ),
-        SizedBox(height: 5),
-        ...scorers.map((scorer) {
-          return Text(
-            "${scorer['player']} ${scorer['minute']}'",
-            style: TextStyle(color: Colors.white, fontSize: 14),
-          );
-        }).toList(),
       ],
     );
   }
 
-  Widget buildMatchList(List<Map<String, dynamic>> matches) {
+  Widget buildMatchList(List<Match> matches) {
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -173,7 +263,7 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
     );
   }
 
-  Widget buildMatchCard(Map<String, dynamic> match) {
+  Widget buildMatchCard(Match match) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: EdgeInsets.all(16),
@@ -184,26 +274,41 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildClubInfoSimple(match["club1"], match["logo1"]),
+          _buildClubInfoSimple(match.club1, match.logo1),
           Column(
             children: [
               Text(
-                match["date"],
+                '${match.date.day}/${match.date.month}/${match.date.year}',
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
               Text(
-                match["time"],
+                '${match.time.hour}:${match.time.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
+             SizedBox(
+  width: 125, // Adjust width as needed
+  child: Text(
+    match.stadium,
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: 12,
+      fontStyle: FontStyle.italic,
+    ),
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    textAlign: TextAlign.center,
+  ),
+),
             ],
           ),
-          _buildClubInfoSimple(match["club2"], match["logo2"]),
+          _buildClubInfoSimple(match.club2, match.logo2),
         ],
       ),
     );
   }
 
   Widget _buildClubInfoSimple(String clubName, String logoPath) {
+    clubName = clubName.split(' - ')[1];
     return Row(
       children: [
         Image.asset(
