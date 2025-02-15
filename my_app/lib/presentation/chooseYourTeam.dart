@@ -162,6 +162,7 @@ class _FormationScreenState extends State<FormationScreen> {
               "image": club['kit_image_url'].toString(),
               "position": player['position'].toString(),
               "price": player['price'].toString(),
+              "club_name": club['club_name'].toString(), // Add club_name here
             });
       }).toList();
     });
@@ -398,16 +399,17 @@ class _FormationScreenState extends State<FormationScreen> {
                           if (selectedPlayers.containsKey(index))
                             Column(
                               children: [
-  Text(
-    selectedPlayers[index]!['name']!.split(' ')[0], // Take only the first word
-    style: TextStyle(
-      color: Colors.white,
-      fontSize: 12,
-    ),
-    textAlign: TextAlign.center, // Center-align text
-  ),
-],
-
+                                Text(
+                                  selectedPlayers[index]!['name']!.split(
+                                      ' ')[0], // Take only the first word
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign:
+                                      TextAlign.center, // Center-align text
+                                ),
+                              ],
                             ),
                         ],
                       ),
@@ -418,46 +420,74 @@ class _FormationScreenState extends State<FormationScreen> {
             ),
           ),
           SizedBox(height: 10),
-          Text(
-            "Choose your formation",
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: formations.keys.map((formation) {
-              bool isSelected = formation == selectedFormation;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    budget = 100.00;
-                    selectedFormation = formation;
-                    selectedPlayers.clear();
-                    substitutes.clear();
-                  });
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 8),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: isSelected ? Colors.green : Colors.white,
-                        width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                    color: isSelected ? Colors.black : Colors.transparent,
-                  ),
-                  child: Text(
-                    formation,
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
           SizedBox(height: 20),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showFormationDialog(),
+        backgroundColor: Colors.green,
+        child: Icon(Icons.sports_soccer),
+      ),
+    );
+  }
+
+  void _showFormationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white, width: 1),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Select Formation",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ...formations.keys.map((formation) {
+                  bool isSelected = formation == selectedFormation;
+                  return ListTile(
+                    onTap: () {
+                      setState(() {
+                        budget = 100.00;
+                        selectedFormation = formation;
+                        selectedPlayers.clear();
+                        substitutes.clear();
+                      });
+                      Navigator.pop(context);
+                    },
+                    title: Text(
+                      formation,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    leading: Icon(
+                      Icons.sports_soccer,
+                      color: isSelected ? Colors.green : Colors.white,
+                    ),
+                    selected: isSelected,
+                    selectedTileColor: Colors.green.withOpacity(0.2),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

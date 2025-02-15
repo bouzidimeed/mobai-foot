@@ -21,7 +21,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'formation_database.db');
     return await openDatabase(
       path,
-      version: 4, // Increment version number
+      version: 6, // Increment version number
       onCreate: (Database db, int version) async {
         await db.execute('''
           CREATE TABLE formations(
@@ -47,7 +47,7 @@ class DatabaseHelper {
         ''');
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        if (oldVersion < 4) {
+        if (oldVersion < 6) {
           // Drop existing tables
           await db.execute('DROP TABLE IF EXISTS formations');
           await db.execute('DROP TABLE IF EXISTS player_performance');
