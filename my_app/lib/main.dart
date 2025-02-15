@@ -4,6 +4,7 @@ import 'package:my_app/presentation/homePage.dart';
 import 'package:my_app/presentation/leaderboard.dart';
 import 'package:my_app/presentation/matchSumilation.dart';
 import 'package:my_app/presentation/roundFinalScore.dart' show MatchScreen;
+import 'package:my_app/presentation/splash.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   @override
@@ -82,6 +83,6 @@ void main() {
   runApp(MaterialApp(
           debugShowCheckedModeBanner: false, // Removes the debug banner
     theme: ThemeData.dark(),
-    home: MainNavigationScreen(),
+    home: SplashScreen(),
   ));
 }
