@@ -83,6 +83,6 @@ void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false, // Removes the debug banner
     theme: ThemeData.dark(),
-    home: LeaderboardScreen(),
+    home: FormationScreen(),
   ));
 }

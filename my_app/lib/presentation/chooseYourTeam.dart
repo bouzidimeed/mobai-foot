@@ -372,7 +372,7 @@ class _FormationScreenState extends State<FormationScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Image.asset("assets/images/stadium2.jpg",
+                Image.asset("assets/images/stade3.png",
                     width: double.infinity, fit: BoxFit.cover),
                 ...formations[selectedFormation]!.asMap().entries.map((entry) {
                   int index = entry.key;
