@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:my_app/database/db_helper.dart';
 import 'package:my_app/presentation/roundFinalScore.dart';
@@ -136,23 +137,39 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
             ),
             SizedBox(height: 10),
             Center(
-              child: ElevatedButton(
-                onPressed: _navigateToPlayRound,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Play Round',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              child: Container(
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(8),
+    gradient: LinearGradient(
+       colors: [
+        Color(0xFF4568DC), // Blue
+        Color(0xFFB06AB3), // Purple
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  ),
+  child: ElevatedButton(
+    onPressed: _navigateToPlayRound,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.transparent, // Remove default color
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 0, // Remove shadow to keep gradient effect clean
+    ),
+    child: Text(
+      'Play Round',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.white, // Ensure text contrast
+      ),
+    ),
+  ),
+),
+
             ),
             SizedBox(height: 20),
             Padding(
@@ -268,14 +285,20 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
                 '${match.time.hour}:${match.time.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
-              Text(
-                match.stadium,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
+             SizedBox(
+  width: 125, // Adjust width as needed
+  child: Text(
+    match.stadium,
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: 12,
+      fontStyle: FontStyle.italic,
+    ),
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    textAlign: TextAlign.center,
+  ),
+),
             ],
           ),
           _buildClubInfoSimple(match.club2, match.logo2),

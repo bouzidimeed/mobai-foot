@@ -397,16 +397,17 @@ class _FormationScreenState extends State<FormationScreen> {
                                 ),
                           if (selectedPlayers.containsKey(index))
                             Column(
-                              children: selectedPlayers[index]!['name']!
-                                  .split(' ') // Split the name into words
-                                  .map((word) => Text(
-                                        word,
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 12),
-                                        textAlign: TextAlign
-                                            .center, // Center-align each word
-                                      ))
-                                  .toList(),
+                              children: [
+  Text(
+    selectedPlayers[index]!['name']!.split(' ')[0], // Take only the first word
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: 12,
+    ),
+    textAlign: TextAlign.center, // Center-align text
+  ),
+],
+
                             ),
                         ],
                       ),
