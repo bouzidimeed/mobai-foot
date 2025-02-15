@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 
 class MatchSimulationScreen extends StatelessWidget {
+  final Map<String, dynamic> match; // Match data including events
+
+  const MatchSimulationScreen({Key? key, required this.match})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    // Use match data to populate the screen
+    final String team1Name = match["team1_name"].split(' - ')[1];
+    final String team2Name = match["team2_name"].split(' - ')[1];
+    final String score = match["score"];
+    final List<Map<String, dynamic>> events =
+        List<Map<String, dynamic>>.from(match["events"]);
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text(
-          "Match simulation",
+          "Match Simulation",
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -15,7 +27,7 @@ class MatchSimulationScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -38,7 +50,7 @@ backgroundColor: Colors.transparent,
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/stadium.jpg"), // Replace with your background image
+                image: AssetImage("assets/images/stadium.jpg"),
                 fit: BoxFit.cover,
               ),
             ),
@@ -67,13 +79,13 @@ backgroundColor: Colors.transparent,
                   Column(
                     children: [
                       Image.asset(
-                        "assets/images/jsk.png", // Replace with team 1 logo
+                        match["team1_logo"], // Team 1 logo
                         width: 100,
                         height: 100,
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        "USMA",
+                      Text(
+                        team1Name,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -83,8 +95,8 @@ backgroundColor: Colors.transparent,
                     ],
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    "2 - 3",
+                  Text(
+                    score,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -95,13 +107,13 @@ backgroundColor: Colors.transparent,
                   Column(
                     children: [
                       Image.asset(
-                        "assets/images/mca.png", // Replace with team 2 logo
+                        match["team2_logo"], // Team 2 logo
                         width: 100,
                         height: 100,
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        "IOK",
+                      Text(
+                        team2Name,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -113,110 +125,43 @@ backgroundColor: Colors.transparent,
                 ],
               ),
               const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: const [
-                        Text(
-                          "De Jong 66'",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          "Depay 79'",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: const [
-                        Text(
-                          "Alvarez 21'",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          "Palmer 70'",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                "match simulation",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
-              
-                    
-                  
-                    SimulationEventRow(
-              minute: "20'",
-              leftImage: "assets/images/goal.png",
-              rightImage: "assets/images/yellow.png",
-              textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-              showDivider: true,
-            ),
-            SimulationEventRow(
-              minute: "40'",
-              leftImage: "assets/images/goal.png",
-              rightImage: "assets/images/yellow.png",
-              textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-              showDivider: true,
-            ),
-            SimulationEventRow(
-              minute: "90'",
-              leftImage: "assets/images/goal.png",
-              rightImage: "assets/images/yellow.png",
-              textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-              showDivider: true,
-            ),
-            SimulationEventRow(
-              minute: "90'",
-              leftImage: "assets/images/goal.png",
-              rightImage: "assets/images/yellow.png",
-              textStyle: const TextStyle(color: Colors.white, fontSize: 16),
-              showDivider: true,
-            ),
-            
+                    ...events.map((event) {
+                      // Parse the event to determine the icon
+                      String iconPath =
+                          "assets/images/goal.png"; // Default to goal
+                      if (event["event"].contains("Yellow card")) {
+                        iconPath = "assets/images/yellow.png";
+                      } else if (event["event"].contains("Red card")) {
+                        iconPath = "assets/images/red.png";
+                      }
+
+                      return SimulationEventRow(
+                        minute: event["event"], // Extract minute
+                        leftImage: event["team"] == "team1" ? iconPath : "",
+                        rightImage: event["team"] == "team2" ? iconPath : "",
+                        textStyle:
+                            const TextStyle(color: Colors.white, fontSize: 16),
+                        showDivider: true,
+                      );
+                    }).toList(),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                 "Full Time",
-                 style: TextStyle(
-                   color: Colors.red,
-                   fontSize: 16,
-                   fontWeight: FontWeight.bold,
-                 ),
-                                ),
-              )
+                  "Full Time",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -224,7 +169,6 @@ backgroundColor: Colors.transparent,
     );
   }
 }
-
 
 class SimulationEventRow extends StatelessWidget {
   final String minute; // The event's minute
@@ -253,37 +197,50 @@ class SimulationEventRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Left Image
-              Image.asset(
-                leftImage,
-                width: 50, // Adjust the size as needed
-                height: 50,
-              ),
+              if (leftImage.isNotEmpty)
+                Image.asset(
+                  leftImage,
+                  width: 50, // Adjust the size as needed
+                  height: 50,
+                ),
 
               // Flexible Spacer
               const Spacer(),
 
-              // Time (centered text)
-              Text(
-                minute,
-                style: textStyle ??
-                    const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+              // Event Text (wrapped in Expanded to allow wrapping)
+              Expanded(
+                child: Text(
+                  minute,
+                  style: textStyle ??
+                      const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                  softWrap: true, // Allow text to wrap to the next line
+                  overflow: TextOverflow.visible, // Handle overflow
+                  textAlign: TextAlign.center, // Center the text
+                ),
               ),
 
               // Flexible Spacer
               const Spacer(),
 
               // Right Image
-              Image.asset(
-                rightImage,
-                width: 50, // Adjust the size as needed
-                height: 50,
-              ),
+              if (rightImage.isNotEmpty)
+                Image.asset(
+                  rightImage,
+                  width: 50, // Adjust the size as needed
+                  height: 50,
+                ),
             ],
           ),
         ),
+        if (showDivider)
+          const Divider(
+            color: Colors.grey,
+            thickness: 1,
+            height: 20,
+          ),
       ],
     );
   }

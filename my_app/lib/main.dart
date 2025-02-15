@@ -4,6 +4,7 @@ import 'package:my_app/presentation/homePage.dart';
 import 'package:my_app/presentation/leaderboard.dart';
 import 'package:my_app/presentation/matchSumilation.dart';
 import 'package:my_app/presentation/roundFinalScore.dart' show MatchScreen;
+import 'package:my_app/presentation/splash.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   @override
@@ -15,7 +16,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     LiveScoreScreen(),
-    MatchScreen(),
+    LeaderboardScreen(),
     LeaderboardScreen(),
     FormationScreen(),
   ];
@@ -80,8 +81,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
 void main() {
   runApp(MaterialApp(
-          debugShowCheckedModeBanner: false, // Removes the debug banner
+    debugShowCheckedModeBanner: false, // Removes the debug banner
     theme: ThemeData.dark(),
-    home: MainNavigationScreen(),
+    home: SplashScreen(),
   ));
 }
